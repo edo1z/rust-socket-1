@@ -1,0 +1,12 @@
+[package]
+name = "socket1"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tcp-server = { path = "./tcp-server"}
+
+[workspace]
+members = [
+  "tcp-server"
+]
