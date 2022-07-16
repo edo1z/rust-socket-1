@@ -6,9 +6,24 @@ version = 3
 name = "socket1"
 version = "0.1.0"
 dependencies = [
+ "tcp-client",
  "tcp-server",
+ "udp-client",
+ "udp-server",
 ]
 
 [[package]]
+name = "tcp-client"
+version = "0.1.0"
+
+[[package]]
 name = "tcp-server"
+version = "0.1.0"
+
+[[package]]
+name = "udp-client"
+version = "0.1.0"
+
+[[package]]
+name = "udp-server"
 version = "0.1.0"

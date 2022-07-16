@@ -13,12 +13,12 @@ fn main() {
     let _ = match protocol {
         "tcp" => match role {
             "server" => tcp_server::serve(address),
-            "client" => Ok(()),
+            "client" => tcp_client::request(address),
             _ => Ok(()),
         },
         "udp" => match role {
-            "server" => Ok(()),
-            "client" => Ok(()),
+            "server" => udp_server::serve(address),
+            "client" => udp_client::request(address),
             _ => Ok(()),
         },
         _ => Ok(()),

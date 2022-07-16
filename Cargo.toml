@@ -5,8 +5,14 @@ edition = "2021"
 
 [dependencies]
 tcp-server = { path = "./tcp-server"}
+tcp-client = { path = "./tcp-client"}
+udp-server = { path = "./udp-server"}
+udp-client = { path = "./udp-client"}
 
 [workspace]
 members = [
-  "tcp-server"
+  "tcp-server",
+  "tcp-client",
+  "udp-server",
+  "udp-client"
 ]
