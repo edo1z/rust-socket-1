@@ -18,7 +18,7 @@ fn main() {
         },
         "udp" => match role {
             "server" => udp_server::serve(address),
-            "client" => udp_client::request(address),
+            "client" => udp_client::communicate(address),
             _ => Ok(()),
         },
         _ => Ok(()),
