@@ -2,9 +2,9 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() != 4 {
-        println!("invalid args");
-        std::process::exit(1);
+    if args.len() < 4 {
+        let _ = packet_capture::capture();
+        std::process::exit(0);
     }
     let protocol: &str = &args[1]; // tcp | udp
     let role: &str = &args[2]; // server | client

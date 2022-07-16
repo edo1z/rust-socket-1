@@ -4,15 +4,17 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tcp-server = { path = "./tcp-server"}
-tcp-client = { path = "./tcp-client"}
-udp-server = { path = "./udp-server"}
-udp-client = { path = "./udp-client"}
+tcp-server = { path = "./tcp-server" }
+tcp-client = { path = "./tcp-client" }
+udp-server = { path = "./udp-server" }
+udp-client = { path = "./udp-client" }
+packet-capture = { path = "./packet-capture" }
 
 [workspace]
 members = [
   "tcp-server",
   "tcp-client",
   "udp-server",
-  "udp-client"
+  "udp-client",
+  "packet-capture"
 ]
