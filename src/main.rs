@@ -13,7 +13,7 @@ fn main() {
     let _ = match protocol {
         "tcp" => match role {
             "server" => tcp_server::serve(address),
-            "client" => tcp_client::request(address),
+            "client" => tcp_client::connect(address),
             _ => Ok(()),
         },
         "udp" => match role {
