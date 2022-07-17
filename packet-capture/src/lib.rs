@@ -4,6 +4,8 @@ use pnet::packet::{
     ip::IpNextHeaderProtocols,
     ipv4::Ipv4Packet,
     ipv6::Ipv6Packet,
+    tcp::TcpPacket,
+    udp::UdpPacket,
     Packet,
 };
 use std::{error::Error, io};
@@ -14,7 +16,7 @@ pub fn capture() -> Result<()> {
     println!("\nPACKET CAPTURE\n");
     let interface = select_network_interface()?;
     let channel = datalink::channel(&interface, Default::default());
-    let (mut tx, mut rx) = match channel {
+    let (mut _tx, mut rx) = match channel {
         Ok(Ethernet(tx, rx)) => (tx, rx),
         Ok(_) => panic!("Unhandled channel type"),
         Err(e) => panic!("{}", e),
@@ -43,15 +45,63 @@ pub fn capture() -> Result<()> {
     }
 }
 
+struct FromTo {
+    from_ip: String,
+    from_port: Option<String>,
+    to_ip: String,
+    to_port: Option<String>,
+}
+impl FromTo {
+    fn new(from_ip: String, to_ip: String) -> Self {
+        Self {
+            from_ip,
+            from_port: None,
+            to_ip,
+            to_port: None,
+        }
+    }
+    fn set_ports(&mut self, from_port: String, to_port: String) {
+        self.from_port = Some(from_port);
+        self.to_port = Some(to_port);
+    }
+    fn get_from(&self) -> String {
+        format!(
+            "{}:{}",
+            self.from_ip,
+            if let Some(from_port) = &self.from_port {
+                from_port
+            } else {
+                "?"
+            }
+        )
+    }
+    fn get_to(&self) -> String {
+        format!(
+            "{}:{}",
+            self.to_ip,
+            if let Some(to_port) = &self.to_port {
+                to_port
+            } else {
+                "?"
+            }
+        )
+    }
+    fn get_from_to(&self) -> String {
+        format!("{} -> {}", self.get_from(), self.get_to())
+    }
+}
+
 fn ipv4_handler(ethernet_packet: &EthernetPacket) {
-    let payload = ethernet_packet.payload();
-    if let Some(packet) = Ipv4Packet::new(payload) {
-        match packet.get_next_level_protocol() {
+    if let Some(ip_packet) = Ipv4Packet::new(ethernet_packet.payload()) {
+        let source = ip_packet.get_source().to_string();
+        let destination = ip_packet.get_destination().to_string();
+        let from_to = FromTo::new(source, destination);
+        match ip_packet.get_next_level_protocol() {
             IpNextHeaderProtocols::Tcp => {
-                tcp_handler(packet.payload());
+                tcp_handler(ip_packet.payload(), from_to);
             }
             IpNextHeaderProtocols::Udp => {
-                udp_handler(packet.payload());
+                udp_handler(ip_packet.payload(), from_to);
             }
             _ => {}
         }
@@ -59,24 +109,45 @@ fn ipv4_handler(ethernet_packet: &EthernetPacket) {
 }
 
 fn ipv6_handler(ethernet_packet: &EthernetPacket) {
-    if let Some(packet) = Ipv6Packet::new(ethernet_packet.payload()) {
-        match packet.get_next_header() {
+    if let Some(ip_packet) = Ipv6Packet::new(ethernet_packet.payload()) {
+        let source = ip_packet.get_source().to_string();
+        let destination = ip_packet.get_destination().to_string();
+        let from_to = FromTo::new(source, destination);
+        match ip_packet.get_next_header() {
             IpNextHeaderProtocols::Tcp => {
-                tcp_handler(packet.payload());
+                tcp_handler(ip_packet.payload(), from_to);
             }
             IpNextHeaderProtocols::Udp => {
-                udp_handler(packet.payload());
+                udp_handler(ip_packet.payload(), from_to);
             }
             _ => {}
         }
     }
 }
 
-fn tcp_handler(packet: &[u8]) {
-    println!("tcp {:?}", packet);
+fn tcp_handler(ip_packet: &[u8], mut from_to: FromTo) {
+    if let Some(tcp_packet) = TcpPacket::new(ip_packet) {
+        let source = tcp_packet.get_source().to_string();
+        let destination = tcp_packet.get_destination().to_string();
+        from_to.set_ports(source, destination);
+        println!(
+            "[tcp] {}\n{:?}",
+            from_to.get_from_to(),
+            tcp_packet.payload()
+        );
+    }
 }
-fn udp_handler(packet: &[u8]) {
-    println!("udp {:?}", packet);
+fn udp_handler(ip_packet: &[u8], mut from_to: FromTo) {
+    if let Some(udp_packet) = UdpPacket::new(ip_packet) {
+        let source = udp_packet.get_source().to_string();
+        let destination = udp_packet.get_destination().to_string();
+        from_to.set_ports(source, destination);
+        println!(
+            "[udp] {}\n{:?}",
+            from_to.get_from_to(),
+            udp_packet.payload()
+        );
+    }
 }
 
 fn select_network_interface() -> Result<NetworkInterface> {
