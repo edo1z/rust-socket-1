@@ -7,6 +7,7 @@ type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 pub fn serve(address: &str) -> Result<()> {
     let listener = TcpListener::bind(address)?;
+    println!("Listening on {}", address);
     loop {
         let (stream, _) = listener.accept()?;
         thread::spawn(move || handler(stream).unwrap_or_else(|error| println!("{:?}", error)));
